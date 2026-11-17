@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RoadWatch</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="nav">
+        <div class="container"><a class="brand" href="index.html">Road<span>Watch</span></a>
+            <nav class="links"><a href="index.html">Home</a><a href="report.html">Report</a><a href="my-reports.html">My
+                    Reports</a><a href="map.html">Map</a><a href="admin.html">Admin</a><a href="login.html">Login</a>
+            </nav>
+        </div>
+    </header>
+    <div class="head">
+        <div class="container">
+            <h1>Manage Reports</h1>
+            <p>Review reports and update their status.</p>
+        </div>
+    </div>
+    <main class="container">
+        <div class="notice">Demo changes are stored in this browser only.</div><label>Filter by status</label><select
+            id="filter">
+            <option value="">All</option>
+            <option>Reported</option>
+            <option>Verified</option>
+            <option>Resolved</option>
+            <option>Rejected</option>
+        </select>
+        <div id="items"></div>
+    </main>
+    <footer class="footer">© 2026 RoadWatch | AI-assisted pothole reporting prototype</footer>
+    <script src="js/app.js"></script>
+    <script>
+        function draw() {
+            let a = reports().filter(r => !filter.value || r.status === filter.value);
+
+            items.innerHTML = a.length ? a.map(r => {
+                let lat = Number(r.lat);
+                let lng = Number(r.lng);
+
+                let hasGPS = r.lat !== '' && r.lng !== '' &&
+                    r.lat != null && r.lng != null &&
+                    Number.isFinite(lat) && Number.isFinite(lng) &&
+                    lat >= -90 && lat <= 90 &&
+                    lng >= -180 && lng <= 180;
+
+                let mapLink = hasGPS
+                    ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=18/${lat}/${lng}`
+                    : '';
+
+                return `
+        <div class="card">
+            <div class="two">
+                <div>
+                    <img src="${r.image}"
+                    style="width:100%;max-height:260px;object-fit:contain">
+                </div>
+
+                <div>
+                    <h3>${esc(r.id)}</h3>
+
+                    <p><b>Location:</b> ${esc(r.location)}</p>
+                    <p><b>By:</b> ${esc(r.user)}</p>
+                    <p><b>Date:</b> ${esc(r.date)}</p>
+                    <p><b>Status:</b> ${esc(r.status)}</p>
+
+                    <p><b>Latitude:</b> ${hasGPS ? lat : 'Not available'}</p>
+                    <p><b>Longitude:</b> ${hasGPS ? lng : 'Not available'}</p>
+
+                    ${hasGPS
+                        ? `<a href="${mapLink}" target="_blank" rel="noopener">View on Map</a>`
+                        : '<p>GPS location unavailable</p>'}
+
+                    <br><br>
+
+                    <label>Update status</label>
+
+                    <select id="s-${r.id}">
+                        <option ${r.status === 'Reported' ? 'selected' : ''}>Reported</option>
+                        <option ${r.status === 'Verified' ? 'selected' : ''}>Verified</option>
+                        <option ${r.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                        <option ${r.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                    </select>
+
+                    <button class="btn" onclick="update('${r.id}')">
+                        Save status
+                    </button>
+                </div>
+            </div>
+        </div>
+        `;
+            }).join('') : '<div class="card empty">No reports found.</div>';
+        }
+
+        function update(id) {
+            let a = reports();
+            let r = a.find(x => x.id === id);
+
+            r.status = document.getElementById('s-' + id).value;
+
+            save(a);
+            draw();
+        }
+
+        filter.onchange = draw;
+        draw();
+    </script>
+</body>
+
+</html>

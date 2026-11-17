@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RoadWatch</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="nav">
+        <div class="container"><a class="brand" href="index.html">Road<span>Watch</span></a>
+            <nav class="links"><a href="index.html">Home</a><a href="report.html">Report</a><a href="my-reports.html">My
+                    Reports</a><a href="map.html">Map</a><a href="admin.html">Admin</a><a href="login.html">Login</a>
+            </nav>
+        </div>
+    </header>
+    <div class="head">
+        <div class="container">
+            <h1>Road Condition Map</h1>
+            <p>Reports with GPS coordinates.</p>
+        </div>
+    </div>
+    <main class="container">
+        <div class="notice">Map markers require latitude and longitude. Map tiles need an internet connection.</div>
+        <div id="map" class="map"></div>
+        <p id="message" class="muted"></p>
+    </main>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>let m = L.map('map').setView([28.9845, 77.7064], 11); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(m); let a = reports().filter(r => r.lat && r.lng); a.forEach(r => L.marker([+r.lat, +r.lng]).addTo(m).bindPopup(esc(r.id) + '<br>' + esc(r.location) + '<br>' + esc(r.status))); message.textContent = a.length ? a.length + ' report(s) displayed.' : 'No GPS-tagged reports yet; showing default Meerut view.'</script>
+    <footer class="footer">© 2026 RoadWatch | AI-assisted pothole reporting prototype</footer>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

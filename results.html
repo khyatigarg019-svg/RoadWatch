@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RoadWatch</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="nav">
+        <div class="container"><a class="brand" href="index.html">Road<span>Watch</span></a>
+            <nav class="links"><a href="index.html">Home</a><a href="report.html">Report</a><a href="my-reports.html">My
+                    Reports</a><a href="map.html">Map</a><a href="admin.html">Admin</a><a href="login.html">Login</a>
+            </nav>
+        </div>
+    </header>
+    <div class="head">
+        <div class="container">
+            <h1>Report Result</h1>
+            <p>Your submission details.</p>
+        </div>
+    </div>
+    <main class="container">
+        <div class="card" id="result"></div>
+    </main>
+    <script src="js/app.js"></script>
+
+    <script>
+        const r = reports().find(
+            x => x.id === sessionStorage.getItem('lastReport')
+        );
+
+        const result = document.getElementById('result');
+
+        if (r) {
+            result.innerHTML = `
+        <div class="two">
+
+            <div>
+                <h3>AI Detected Image</h3>
+
+                <img src="${esc(r.annotatedImage)}"
+                     style="width:100%;max-height:360px;object-fit:contain">
+
+                <h3>Original Image</h3>
+
+                <img src="${esc(r.image)}"
+                     style="width:100%;max-height:300px;object-fit:contain">
+            </div>
+
+            <div>
+                <h2>Report Submitted Successfully!</h2>
+
+                <p><b>Report ID:</b> ${esc(r.id)}</p>
+
+                <p><b>Location:</b> ${esc(r.location)}</p>
+
+                <p><b>Description:</b>
+                    ${esc(r.description || 'Not provided')}
+                </p>
+
+                <h3>AI Detection Results</h3>
+
+                <p><b>Potholes detected:</b>
+                    ${Number(r.potholeCount)}
+                </p>
+
+                <p><b>Severity:</b> ${esc(r.severity)}</p>
+
+                <p><b>Status:</b> ${esc(r.status)}</p>
+
+                <a class="btn" href="my-reports.html">
+                    My Reports
+                </a>
+            </div>
+
+        </div>
+    `;
+        } else {
+            result.textContent = 'No recent report found.';
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RoadWatch</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="nav">
+        <div class="container"><a class="brand" href="index.html">Road<span>Watch</span></a>
+            <nav class="links"><a href="index.html">Home</a><a href="report.html">Report</a><a href="my-reports.html">My
+                    Reports</a><a href="map.html">Map</a><a href="admin.html">Admin</a><a href="login.html">Login</a>
+            </nav>
+        </div>
+    </header>
+    <div class="head">
+        <div class="container">
+            <h1>Report a Pothole</h1>
+            <p>Upload a road image and provide location information.</p>
+        </div>
+    </div>
+    <main class="container">
+        <form class="card form" id="form"><label>Road image *</label><input id="photo" type="file" accept="image/*"
+                required><img id="preview" class="preview" hidden><label>Description</label><textarea id="desc"
+                placeholder="Describe the pothole or nearby landmark"></textarea><label>Location / landmark
+                *</label><input id="place" required placeholder="e.g. Near college main gate, Meerut">
+            <div class="two">
+                <div><label>Latitude (optional)</label><input id="lat" type="number" step="any"></div>
+                <div><label>Longitude (optional)</label><input id="lng" type="number" step="any"></div>
+            </div><button type="button" class="btn light" id="gps" style="margin:12px 0">Use my current
+                location</button>
+            <div></div><button type="submit" class="btn orange">Submit Report</button>
+        </form>
+    </main>
+    <script src="js/app.js"></script>
+
+    <script>
+        const photo = document.getElementById('photo');
+        const preview = document.getElementById('preview');
+        const form = document.getElementById('form');
+        const gps = document.getElementById('gps');
+
+        let img = '';
+
+        photo.onchange = () => {
+            const file = photo.files[0];
+
+            if (!file) return;
+
+            if (file.size > 3000000) {
+                alert('Choose an image below 3 MB');
+                photo.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                img = reader.result;
+                preview.src = img;
+                preview.hidden = false;
+            };
+
+            reader.readAsDataURL(file);
+        };
+
+        gps.onclick = () => {
+            navigator.geolocation.getCurrentPosition(
+                p => {
+                    document.getElementById('lat').value =
+                        p.coords.latitude;
+
+                    document.getElementById('lng').value =
+                        p.coords.longitude;
+                },
+                () => alert('Location permission unavailable')
+            );
+        };
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const file = photo.files[0];
+
+            if (!file) {
+                alert('Choose an image');
+                return;
+            }
+
+            const button = form.querySelector('button[type="submit"]');
+            button.disabled = true;
+            button.textContent = 'Detecting potholes...';
+
+            try {
+                const formData = new FormData();
+                formData.append('image', file);
+
+                const response = await fetch('/detect', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Detection failed');
+                }
+
+                const reader = new FileReader();
+
+                reader.onload = () => {
+                    const all = reports();
+
+                    const report = {
+                        id: 'RW' + Date.now().toString().slice(-7),
+                        user: user(),
+                        image: reader.result,
+                        annotatedImage: data.annotated_image,
+                        potholeCount: data.pothole_count,
+                        predictions: data.predictions,
+                        description: document.getElementById('desc').value,
+                        location: document.getElementById('place').value,
+                        lat: document.getElementById('lat').value,
+                        lng: document.getElementById('lng').value,
+                        date: new Date().toLocaleString(),
+                        severity: 'Needs review',
+                        status: 'Reported'
+                    };
+
+                    all.unshift(report);
+                    save(all);
+
+                    sessionStorage.setItem('lastReport', report.id);
+
+                    window.location.href = 'results.html';
+                };
+
+                reader.readAsDataURL(file);
+
+            } catch (error) {
+                alert(error.message);
+                button.disabled = false;
+                button.textContent = 'Submit Report';
+            }
+        };
+    </script>
+    <footer class="footer">© 2026 RoadWatch | AI-assisted pothole reporting prototype</footer>
+</body>
+
+</html>
